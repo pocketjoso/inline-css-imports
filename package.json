@@ -1,0 +1,23 @@
+{
+  "name": "y",
+  "version": "0.0.0",
+  "description": "Finds, requests and inlines all css @imports in a css string",
+  "main": "lib/index.js",
+  "scripts": {
+    "prepublish": "./node_modules/.bin/babel -d lib src/",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "css",
+    "css",
+    "imports",
+    "node"
+  ],
+  "author": "Jonas Ohlsson",
+  "license": "ISC",
+  "devDependencies": {
+    "babel": "^5.8.23",
+    "babel-core": "^5.8.25",
+    "babel-preset-es2015": "^6.1.2"
+  }
+}
