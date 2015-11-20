@@ -6,6 +6,8 @@ You have a css string with `@import` statements, you want them resolved and inli
 Code mostly adapted from the css `@import` part of [inliner](https://github.com/remy/inliner).
 Recursively inlines css imports, so works for nested `@import`s too.
 
+**NOTE** still in development - use at own risk. :)
+
 ## Requirements
 `Node@^0.12` (could use earlier version if you polyfilled `Promise`).
 
