@@ -1,3 +1,6 @@
+import fetch from 'node-fetch'
+import url from 'url'
+
 'use strict'
 // adapted from https://github.com/remy/inliner/blob/master/lib/css.js#L39-L76
 // TODO: test test test, especially with nested imports
@@ -31,7 +34,7 @@ export function inlineCssImports (css, baseUrl) {
       console.log('replace', `@import ${match}`)
       css = css.replace(`@import ${match}`, importedCss)
       console.log('after replace', css.length)
-      return _inlineCssImports(css, importUrl)
+      return inlineCssImports(css, importUrl)
     }).catch(console.log)
   } else {
     console.log('done inlining imports')
