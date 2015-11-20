@@ -1,14 +1,13 @@
+'use strict'
+// adapted from https://github.com/remy/inliner/blob/master/lib/css.js#L39-L76
+
 import fetch from 'node-fetch'
 import url from 'url'
 
-'use strict'
-// adapted from https://github.com/remy/inliner/blob/master/lib/css.js#L39-L76
-// TODO: test test test, especially with nested imports
-// should setup test fixture for that..
-// need to run server for it? or host online?
-let tempIt = 0
+const SAFETY_BREAK_THRESHOLD = 100
+let safeBreakIterator = 0
+
 export default function inlineCssImports (css, baseUrl) {
-  console.log('_inlineCssImports', css.length)
   if (css.indexOf('@import') !== -1) {
     const match = (css.match(/@import\s*([^;]*;?)/) || [null, ''])[1]
     const parts = match.replace(/url/, '')
@@ -17,35 +16,31 @@ export default function inlineCssImports (css, baseUrl) {
       .trim()
       .split(' ') // clean up
     if (parts.length > 2) {
-      console.log('something wrong, parts length should be no greater than 2', parts.length)
+      console.error('something wrong, parts length should be no greater than 2', parts.length)
     }
     const importHref = parts[0]
     const mediaTypes = parts.slice(1)
-    // need to make the import url absolute
+    // ensure import url is absolute
     const importUrl = url.resolve(baseUrl, importHref)
 
-    console.log('fetching import css', importUrl)
     return fetch(importUrl)
     .then(response => response.text())
     .then(importedCss => {
+      importedCss = importedCss.replace(/\n$/, '')
       if (mediaTypes.length !== 0) {
-        console.log('has mediaTypes', mediaTypes.join(' '))
         importedCss = `@media ${mediaTypes.join(' ')} { ${importedCss} }`
       }
       // inline into original css
-      console.log('replace', `@import ${match}`)
       css = css.replace(`@import ${match}`, importedCss)
-      tempIt++
-      if (tempIt < 10) {
+      safeBreakIterator++
+      if (safeBreakIterator < SAFETY_BREAK_THRESHOLD) {
         return inlineCssImports(css, importUrl)
       } else {
-        console.log('aborting..')
+        console.error('too much nesting, aborting..')
         return css
       }
-
     }).catch(console.log)
   } else {
-    console.log('done inlining imports')
     return Promise.resolve(css)
   }
 }
