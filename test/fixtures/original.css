@@ -1,0 +1,6 @@
+@import url(reset.css);
+@import url("reset.css");
+@import "reset.css";
+.body { color: red }
+@import "reset.css" print;
+@import url(http://localhost:54321/reset.css);
