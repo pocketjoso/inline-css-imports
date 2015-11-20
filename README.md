@@ -3,7 +3,7 @@
 [![NPM version](https://badge.fury.io/js/inline-css-imports.svg)](http://badge.fury.io/js/inline-css-imports)
 
 You have a css string with `@import` statements, you want them resolved and inlined into said css string.
-Code mostly adapted from @remy’s [inliner]()
+Code mostly adapted from the css `@import` part of [inliner](https://github.com/remy/inliner).
 Recursively inlines css imports, so works for nested `@import`s too.
 
 ## Requirements
