@@ -1,6 +1,7 @@
 #Inline css @imports
 
 [![NPM version](https://badge.fury.io/js/inline-css-imports.svg)](http://badge.fury.io/js/inline-css-imports)
+[![Build Status](https://travis-ci.org/pocketjoso/inline-css-imports.svg?branch=master)](https://travis-ci.org/pocketjoso/inline-css-imports)
 
 You have a css string with `@import` statements, you want them resolved and inlined into said css string.
 Code mostly adapted from the css `@import` part of [inliner](https://github.com/remy/inliner).
