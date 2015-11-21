@@ -18,8 +18,8 @@ const failTest = function (t) {
   server.close()
 }
 
-const runImportTest = function (cssFileName, expectedFileName) {
-  test('basic test', t => {
+const runImportTest = function (testLabel, cssFileName, expectedFileName) {
+  test(testLabel, t => {
     const originalCss = fs.readFileSync(path.join(FIXTURES_DIR, cssFileName), 'utf8')
     const expectedCss = fs.readFileSync(path.join(FIXTURES_DIR, expectedFileName), 'utf8')
     return inlineCssImports(originalCss, `http://localhost:${PORT}/${cssFileName}`)
@@ -31,6 +31,7 @@ const runImportTest = function (cssFileName, expectedFileName) {
 server.on('listening', () => {
   console.log('server up, start tests')
 
-  runImportTest('original.css', 'original--result.css')
-  runImportTest('nested-1.css', 'nested--result.css')
+  runImportTest('basic', 'basic.css', 'reset.css')
+  runImportTest('core', 'core.css', 'core--result.css')
+  runImportTest('nested', 'nested-top.css', 'nested--result.css')
 })
