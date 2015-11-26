@@ -26,6 +26,10 @@ const _cssFromImport = function (importString, baseUrl) {
   return fetch(importUrl)
   .then(response => response.text())
   .then(importedCss => {
+    if (/^</.test(importedCss)) {
+      // ignore imports that resolve in something other than css (html, most likely)
+      return Promise.resolve('')
+    }
     importedCss = importedCss.replace(/\n$/, '')
 
     if (mediaTypes.length !== 0) {
