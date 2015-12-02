@@ -22,9 +22,8 @@ const _cssFromImport = function (importString, baseUrl) {
 
   // ensure import url is absolute
   const importUrl = url.resolve(baseUrl, importHref)
-
   return fetch(importUrl)
-  .then(response => response.text())
+  .then(response => response.status === 200 ? response.text() : '')
   .then(importedCss => {
     if (/^</.test(importedCss)) {
       // ignore imports that resolve in something other than css (html, most likely)
