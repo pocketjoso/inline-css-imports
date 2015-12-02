@@ -4,3 +4,4 @@
 .body { color: red }
 @import "reset.css" print;
 @import url(http://localhost:54321/reset.css);
+@import url(//localhost:54321/reset.css);

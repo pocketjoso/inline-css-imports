@@ -4,3 +4,4 @@
 .body { color: red }
 @media print { * { padding: 0 } }
 * { padding: 0 }
+* { padding: 0 }
