@@ -22,9 +22,10 @@ const runImportTest = function (testLabel, cssFileName, expectedFileName) {
   test(testLabel, t => {
     const originalCss = fs.readFileSync(path.join(FIXTURES_DIR, cssFileName), 'utf8')
     const expectedCss = expectedFileName ? fs.readFileSync(path.join(FIXTURES_DIR, expectedFileName), 'utf8') : ''
+
     return inlineCssImports(originalCss, `http://localhost:${PORT}/${cssFileName}`)
-    .then(resultingCss => t.is(resultingCss.trim(), expectedCss.trim()))
-    .catch(() => failTest(t))
+      .then(resultingCss => t.is(resultingCss.trim(), expectedCss.trim()))
+      .catch(() => failTest(t))
   })
 }
 
@@ -35,4 +36,5 @@ server.on('listening', () => {
   runImportTest('core', 'core.css', 'core--result.css')
   runImportTest('nested', 'nested-top.css', 'nested--result.css')
   runImportTest('missing', 'missing.css')
+  runImportTest('commented-import', 'commented-import.css', 'commented-import--result.css')
 })

@@ -40,7 +40,7 @@ const _cssFromImport = function (importString, baseUrl) {
 }
 
 export default function inlineCssImports (css, baseUrl) {
-  if (css.indexOf('@import') === -1) {
+  if (!IMPORT_PATTERN.test(css)) {
     return Promise.resolve(css)
   }
 
