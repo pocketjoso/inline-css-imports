@@ -3,7 +3,7 @@ import fs from 'fs'
 import http from 'http'
 import path from 'path'
 import st from 'st'
-import inlineCssImports from '../lib/index'
+import inlineCssImports, { getImportStringParts } from '../lib/index'
 
 const PORT = 54321
 const FIXTURES_DIR = path.resolve(__dirname, 'fixtures')
@@ -29,6 +29,16 @@ const runImportTest = function (testLabel, cssFileName, expectedFileName) {
   })
 }
 
+const runImportStringPartsTest = function (importString, expectedConfig) {
+  test(`importStringParts test for ${importString}`, t => {
+     const { importHref, mediaTypes } = getImportStringParts(importString)
+    t.is(importHref, expectedConfig.importHref)
+    t.deepEqual(mediaTypes, expectedConfig.mediaTypes)
+    t.pass()
+  })
+
+}
+
 server.on('listening', () => {
   console.log('server up, start tests')
 
@@ -41,4 +51,25 @@ server.on('listening', () => {
   // test invalid imports, ensure doesn't cause infinite loop
   runImportTest('invalid', 'invalid.css')
   runImportTest('import self', 'import-self.css')
+})
+
+runImportStringPartsTest('url(reset.css)', {
+  importHref: 'reset.css',
+  mediaTypes: []
+})
+
+runImportStringPartsTest('"reset.css" print;', {
+  importHref: 'reset.css',
+  mediaTypes: ['print']
+})
+
+// SPACES in url
+runImportStringPartsTest('"https://fonts.googleapis.com/css?family=Roboto:400, 100";', {
+  importHref: 'https://fonts.googleapis.com/css?family=Roboto:400, 100',
+  mediaTypes: []
+})
+
+runImportStringPartsTest('"https://fonts.googleapis.com/css?family=Roboto:400, 100" screen;', {
+  importHref: 'https://fonts.googleapis.com/css?family=Roboto:400, 100',
+  mediaTypes: ['screen']
 })

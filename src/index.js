@@ -7,18 +7,30 @@ import url from 'url'
 const IMPORT_PATTERN = /@import ([^;]*;?)/
 const IMPORT_PATTERN_GLOBAL = new RegExp(IMPORT_PATTERN.source, 'g')
 
-const _cssFromImport = function (importString, baseUrl) {
-  const parts = importString.replace(/url/, '')
-    // {
-    .replace(/['}"()]/g, '')
-    .replace(/;$/, '')
-    .trim()
-    .split(' ') // clean up
+const ARGS_REGEXP = /([^\s'"]+(['"])([^\2]*?)\2)|[^\s'"]+|(['"])([^\4]*?)\4/gi
+
+export function getImportStringParts (importString) {
+  const parts = importString.match(ARGS_REGEXP)
+    .map(p => {
+      return p.replace(/url/, '')
+      // {
+      .replace(/['}"()]/g, '')
+      .replace(/;$/, '')
+      .trim()
+    })
+    .filter(p => !!p)
+
   if (parts.length > 2) {
-    console.error('something wrong, parts length should be no greater than 2', parts.length)
+    console.error('something wrong, parts length should be no greater than 2', parts.length, '\nfor importString:', importString, '\nbaseUrl:', baseUrl)
   }
-  const importHref = parts[0]
-  const mediaTypes = parts.slice(1)
+  return {
+    importHref: parts[0],
+    mediaTypes: parts.slice(1)
+  }
+}
+
+const _cssFromImport = function (importString, baseUrl) {
+  const { importHref, mediaTypes } = getImportStringParts(importString)
 
   // ensure import url is absolute
   const importUrl = url.resolve(baseUrl, importHref)
