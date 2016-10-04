@@ -22,12 +22,18 @@ const _cssFromImport = function (importString, baseUrl) {
 
   // ensure import url is absolute
   const importUrl = url.resolve(baseUrl, importHref)
+  if (importUrl === baseUrl) {
+    // cannot import itself - infinit recursion.
+    // this can happen if importString is invalid (as well as if a stylesheet actually imports itself)
+    console.log('avoided infinite recursion.. ', importString, baseUrl)
+    return Promise.resolve('')
+  }
   return fetch(importUrl)
   .then(response => response.status === 200 ? response.text() : '')
   .then(importedCss => {
     if (/^</.test(importedCss)) {
       // ignore imports that resolve in something other than css (html, most likely)
-      return Promise.resolve('')
+      return ''
     }
     importedCss = importedCss.replace(/\n$/, '')
 
