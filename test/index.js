@@ -37,4 +37,8 @@ server.on('listening', () => {
   runImportTest('nested', 'nested-top.css', 'nested--result.css')
   runImportTest('missing', 'missing.css')
   runImportTest('commented-import', 'commented-import.css', 'commented-import--result.css')
+
+  // test invalid imports, ensure doesn't cause infinite loop
+  runImportTest('invalid', 'invalid.css')
+  runImportTest('import self', 'import-self.css')
 })
