@@ -20,9 +20,6 @@ export function getImportStringParts (importString) {
     })
     .filter(p => !!p)
 
-  if (parts.length > 2) {
-    console.error('something wrong, parts length should be no greater than 2', parts.length, '\nfor importString:', importString, '\nbaseUrl:', baseUrl)
-  }
   return {
     importHref: parts[0],
     mediaTypes: parts.slice(1)
