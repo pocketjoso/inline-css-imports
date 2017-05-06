@@ -25,7 +25,10 @@ const runImportTest = function (testLabel, cssFileName, expectedFileName) {
 
     return inlineCssImports(originalCss, `http://localhost:${PORT}/${cssFileName}`)
       .then(resultingCss => t.is(resultingCss.trim(), expectedCss.trim()))
-      .catch(() => failTest(t))
+      .catch(e => {
+        console.log(e)
+        failTest(t)
+      })
   })
 }
 
@@ -45,7 +48,8 @@ server.on('listening', () => {
   runImportTest('basic', 'basic.css', 'reset.css')
   runImportTest('core', 'core.css', 'core--result.css')
   runImportTest('nested', 'nested-top.css', 'nested--result.css')
-  runImportTest('missing', 'missing.css')
+  runImportTest('nested', 'nested-top.css', 'nested--result.css')
+  runImportTest('missing', 'import-nested-with-relative-asset-path.css', 'import-nested-with-relative-asset-path--result.css')
   runImportTest('commented-import', 'commented-import.css', 'commented-import--result.css')
 
   // test invalid imports, ensure doesn't cause infinite loop

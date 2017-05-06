@@ -1,0 +1,9 @@
+body {
+  background-image: url(bg.png);
+}
+.mega {
+  background-image: url(nested/images/something.png);
+}
+div {
+  background-image: url(http://jonassebastianohlsson.com/img)
+}
