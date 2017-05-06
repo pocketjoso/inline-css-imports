@@ -4,6 +4,8 @@
 import fetch from 'node-fetch'
 import url from 'url'
 
+import rebaseRelativePaths from './rebaseRelativePaths'
+
 const IMPORT_PATTERN = /@import ([^;]*;?)/
 const IMPORT_PATTERN_GLOBAL = new RegExp(IMPORT_PATTERN.source, 'g')
 
@@ -26,15 +28,11 @@ export function getImportStringParts (importString) {
   }
 }
 
-const _cssFromImport = function (importString, baseUrl) {
-  const { importHref, mediaTypes } = getImportStringParts(importString)
-
-  // ensure import url is absolute
-  const importUrl = url.resolve(baseUrl, importHref)
+function _cssFromImport (importUrl, baseUrl, mediaTypes) {
   if (importUrl === baseUrl) {
     // cannot import itself - infinit recursion.
     // this can happen if importString is invalid (as well as if a stylesheet actually imports itself)
-    console.log('avoided infinite recursion.. ', importString, baseUrl)
+    console.log('avoided infinite recursion.. ', baseUrl)
     return Promise.resolve('')
   }
   return fetch(importUrl)
@@ -63,11 +61,23 @@ export default function inlineCssImports (css, baseUrl) {
   let importCssPromises = []
   let match
   while ((match = IMPORT_PATTERN_GLOBAL.exec(css)) !== null) {
-    importCssPromises.push(_cssFromImport(match[1], baseUrl))
+    const importString = match[1]
+    const { importHref, mediaTypes } = getImportStringParts(importString)
+    // ensure import url is absolute
+    const importUrl = url.resolve(baseUrl, importHref)
+
+    importCssPromises.push(
+      _cssFromImport(importUrl, baseUrl, mediaTypes)
+      .then(inlinedCss => {
+        // now need to rebase all asset relative paths inside the resolved imported css
+        return rebaseRelativePaths(inlinedCss, importUrl, baseUrl)
+      })
+    )
   }
 
   // wait for all importCssPromises to resolve, then inline them into the css
   return Promise.all(importCssPromises).then(resolvedCssImports => {
+    // then finally inject them back into the main css
     while (css.indexOf('@import ') !== -1) {
       const match = (css.match(IMPORT_PATTERN) || [null, ''])[1]
       css = css.replace(`@import ${match}`, resolvedCssImports.shift())
