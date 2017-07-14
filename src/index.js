@@ -3,6 +3,12 @@
 
 import fetch from 'node-fetch'
 import url from 'url'
+import https from 'https'
+
+const fetchHttpsAgent = new https.Agent({
+  // to allow dev servers with invalid certs.
+  rejectUnauthorized: false
+})
 
 import rebaseRelativePaths from './rebaseRelativePaths'
 
@@ -35,7 +41,10 @@ function _cssFromImport (importUrl, baseUrl, mediaTypes) {
     console.log('avoided infinite recursion.. ', baseUrl)
     return Promise.resolve('')
   }
-  return fetch(importUrl)
+  return fetch(
+    importUrl,
+    {agent: url.parse(importUrl).protocol === 'https:' ? fetchHttpsAgent : undefined}
+  )
   .then(response => response.status === 200 ? response.text() : '')
   .then(importedCss => {
     if (/^</.test(importedCss)) {
