@@ -30,7 +30,7 @@ export function getImportStringParts (importString) {
 
 function _cssFromImport (importUrl, baseUrl, mediaTypes) {
   if (importUrl === baseUrl) {
-    // cannot import itself - infinit recursion.
+    // cannot import itself - infinite recursion.
     // this can happen if importString is invalid (as well as if a stylesheet actually imports itself)
     console.log('avoided infinite recursion.. ', baseUrl)
     return Promise.resolve('')
@@ -49,7 +49,11 @@ function _cssFromImport (importUrl, baseUrl, mediaTypes) {
     }
 
     return inlineCssImports(importedCss, importUrl)
-  }).catch(console.log)
+  })
+  .catch(e => {
+    console.log('inline-css-imports error fetching import url', importUrl, e)
+    return Promise.resolve('')
+  })
 }
 
 export default function inlineCssImports (css, baseUrl) {
