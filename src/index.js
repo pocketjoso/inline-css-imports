@@ -80,13 +80,14 @@ export default function inlineCssImports (css, baseUrl) {
   }
 
   // wait for all importCssPromises to resolve, then inline them into the css
-  return Promise.all(importCssPromises).then(resolvedCssImports => {
-    // then finally inject them back into the main css
-    while (css.indexOf('@import ') !== -1) {
-      const match = (css.match(IMPORT_PATTERN) || [null, ''])[1]
-      css = css.replace(`@import ${match}`, resolvedCssImports.shift())
-    }
-    // and we're done!
-    return Promise.resolve(css)
-  })
+  return Promise.all(importCssPromises)
+    .then(resolvedCssImports => {
+      // then finally inject them back into the main css
+      while (css.indexOf('@import ') !== -1) {
+        const match = (css.match(IMPORT_PATTERN) || [null, ''])[1]
+        css = css.replace(`@import ${match}`, resolvedCssImports.shift())
+      }
+      // and we're done!
+      return Promise.resolve(css)
+    })
 }
