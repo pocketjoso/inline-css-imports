@@ -1,6 +1,6 @@
 {
   "name": "inline-css-imports",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Finds, requests and inlines all css @imports in a css string",
   "main": "lib/index.js",
   "scripts": {
