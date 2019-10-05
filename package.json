@@ -27,6 +27,6 @@
     "st": "^1.0.0"
   },
   "dependencies": {
-    "node-fetch": "^1.7.1"
+    "node-fetch": "^2.6.0"
   }
 }
