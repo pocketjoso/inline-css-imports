@@ -1,7 +1,7 @@
 * { padding: 0 }
 * { padding: 0 }
 * { padding: 0 }
-.body { color: red }
+.body { color: red; }
 @media print { * { padding: 0 } }
 * { padding: 0 }
 * { padding: 0 }

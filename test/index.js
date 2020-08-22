@@ -3,7 +3,7 @@ import fs from 'fs'
 import http from 'http'
 import path from 'path'
 import st from 'st'
-import inlineCssImports, { getImportStringParts } from '../lib/index'
+import inlineCssImports, { getImportStringParts, findAllImportDeclarations } from '../lib/index'
 
 const PORT = 54321
 const FIXTURES_DIR = path.resolve(__dirname, 'fixtures')
@@ -32,9 +32,16 @@ const runImportTest = function (testLabel, cssFileName, expectedFileName) {
   })
 }
 
-const runImportStringPartsTest = function (importString, expectedConfig) {
-  test(`importStringParts test for ${importString}`, t => {
-     const { importHref, mediaTypes } = getImportStringParts(importString)
+const runImportDeclarationTest = function (input, expectedConfig) {
+  test(`importDeclaration test for ${input}`, t => {
+    const importDeclarations = findAllImportDeclarations(input)
+    const importDeclaration = importDeclarations[0].importDeclaration
+    if (!importDeclaration) {
+      t.fail('did not match any @import css declaration!')
+      return
+    }
+
+    const { importHref, mediaTypes } = getImportStringParts(importDeclaration.replace('@import ', ''))
     t.is(importHref, expectedConfig.importHref)
     t.deepEqual(mediaTypes, expectedConfig.mediaTypes)
     t.pass()
@@ -57,23 +64,29 @@ server.on('listening', () => {
   runImportTest('import self', 'import-self.css')
 })
 
-runImportStringPartsTest('url(reset.css)', {
+runImportDeclarationTest('@import url(reset.css)', {
   importHref: 'reset.css',
   mediaTypes: []
 })
 
-runImportStringPartsTest('"reset.css" print;', {
+runImportDeclarationTest('@import "reset.css" print;', {
   importHref: 'reset.css',
   mediaTypes: ['print']
 })
 
 // SPACES in url
-runImportStringPartsTest('"https://fonts.googleapis.com/css?family=Roboto:400, 100";', {
+runImportDeclarationTest('@import "https://fonts.googleapis.com/css?family=Roboto:400, 100";', {
   importHref: 'https://fonts.googleapis.com/css?family=Roboto:400, 100',
   mediaTypes: []
 })
 
-runImportStringPartsTest('"https://fonts.googleapis.com/css?family=Roboto:400, 100" screen;', {
+runImportDeclarationTest('@import "https://fonts.googleapis.com/css?family=Roboto:400, 100" screen;', {
   importHref: 'https://fonts.googleapis.com/css?family=Roboto:400, 100',
   mediaTypes: ['screen']
+})
+
+// SEMI COLON in url
+runImportDeclarationTest('@import "https://fonts.googleapis.com/css2?family=Muli:wght@400;700&display=swap";', {
+  importHref: 'https://fonts.googleapis.com/css2?family=Muli:wght@400;700&display=swap',
+  mediaTypes: []
 })

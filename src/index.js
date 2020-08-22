@@ -12,9 +12,6 @@ const fetchHttpsAgent = new https.Agent({
 
 import rebaseRelativePaths from './rebaseRelativePaths'
 
-const IMPORT_PATTERN = /@import ([^;]*;?)/
-const IMPORT_PATTERN_GLOBAL = new RegExp(IMPORT_PATTERN.source, 'g')
-
 const ARGS_REGEXP = /([^\s'"]+(['"])([^\2]*?)\2)|[^\s'"]+|(['"])([^\4]*?)\4/gi
 
 export function getImportStringParts (importString) {
@@ -65,38 +62,76 @@ function _cssFromImport (importUrl, baseUrl, mediaTypes) {
   })
 }
 
-export default function inlineCssImports (css, baseUrl) {
-  if (!IMPORT_PATTERN.test(css)) {
-    return Promise.resolve(css)
+function nextUnquotedSemicolon (string) {
+  let openDoubleQuote = false;
+  let openSingleQuote = false;
+  return string.split('').findIndex(char => {
+    if (char === '"') {
+      openDoubleQuote = !openDoubleQuote;
+    }
+    if (char === "'") {
+      openSingleQuote = !openSingleQuote;
+    }
+    return char === ';' && !openSingleQuote && !openDoubleQuote;
+  })
+}
+function findImportDeclaration (css) {
+  const startPosition = css.indexOf('@import ')
+  if (startPosition === -1) {
+    return {startPosition: -1, isFinal: true}
   }
 
-  // get promises for css corresponding to each @import declaration in this css
-  let importCssPromises = []
-  let match
-  while ((match = IMPORT_PATTERN_GLOBAL.exec(css)) !== null) {
-    const importString = match[1]
-    const { importHref, mediaTypes } = getImportStringParts(importString)
+  const localSemicolonPosition = nextUnquotedSemicolon(css.slice(startPosition))
+  const isFinal = localSemicolonPosition === -1
+  return {
+    startPosition,
+    endPosition: isFinal ? css.length : startPosition + localSemicolonPosition + 1,
+    isFinal
+  }
+}
+
+export function findAllImportDeclarations (css, offset = 0, importDeclarations = []) {
+  const subCss = css.slice(offset)
+  const {startPosition, endPosition, isFinal} = findImportDeclaration(subCss)
+  if (startPosition !== -1) {
+    const importDeclaration = subCss.slice(startPosition, endPosition)
+    importDeclarations.push({
+      importDeclaration,
+      startPosition: offset + startPosition,
+      endPosition: offset + endPosition
+    })
+  }
+  if (isFinal) {
+    return importDeclarations
+  } else {
+    return findAllImportDeclarations(css, offset + endPosition, importDeclarations)
+  }
+}
+
+export default function inlineCssImports (css, baseUrl) {
+  const importDeclarations = findAllImportDeclarations(css)
+
+  const importCssPromises = importDeclarations.map(({importDeclaration, startPosition, endPosition}) => {
+    const { importHref, mediaTypes } = getImportStringParts(importDeclaration.replace('@import ', ''))
     // ensure import url is absolute
     const importUrl = url.resolve(baseUrl, importHref)
 
-    importCssPromises.push(
-      _cssFromImport(importUrl, baseUrl, mediaTypes)
+    return _cssFromImport(importUrl, baseUrl, mediaTypes)
       .then(inlinedCss => {
-        // now need to rebase all asset relative paths inside the resolved imported css
-        return rebaseRelativePaths(inlinedCss, importUrl, baseUrl)
+        return {
+          // now need to rebase all asset relative paths inside the resolved imported css
+          importedCss: rebaseRelativePaths(inlinedCss, importUrl, baseUrl),
+          startPosition, endPosition
+        }
       })
-    )
-  }
+  })
 
   // wait for all importCssPromises to resolve, then inline them into the css
   return Promise.all(importCssPromises)
     .then(resolvedCssImports => {
-      // then finally inject them back into the main css
-      while (css.indexOf('@import ') !== -1) {
-        const match = (css.match(IMPORT_PATTERN) || [null, ''])[1]
-        css = css.replace(`@import ${match}`, resolvedCssImports.shift())
-      }
-      // and we're done!
+      resolvedCssImports.reverse().forEach(({importedCss, startPosition, endPosition}) => {
+        css = css.slice(0, startPosition) + importedCss + css.slice(endPosition)
+      })
       return Promise.resolve(css)
     })
 }
